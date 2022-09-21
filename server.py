@@ -29,10 +29,21 @@ import socketserver
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
+    content_path = './www/index.html'
+
     def handle(self):
+        # The request should be read and need to determine the path of the request so i know which file to return
+        # once file is deduce (which will be in www *treat certain paths differently), need to return the data of that file (with the appropriate format)
+        # don't worry about returning multiple files (just return html, and computer will also reutrn css automatically)
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        data_list = (str(self.data).replace("b'","")).split("\\r\\n")[0]
+        print(data_list)
+        with open(self.content_path, 'rb') as f:
+            file = str(f.read())
+        header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
+        response = header + file
+        self.request.sendall(bytearray(response, 'utf-8'))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
