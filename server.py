@@ -29,7 +29,8 @@ import socketserver
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
-    content_path = './www/index.html'
+    content_path = 'www/index.html'
+    content_css = 'www/base.css'
 
     def handle(self):
         # The request should be read and need to determine the path of the request so i know which file to return
@@ -37,13 +38,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # don't worry about returning multiple files (just return html, and computer will also reutrn css automatically)
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        data_list = (str(self.data).replace("b'","")).split("\\r\\n")[0]
-        print(data_list)
-        with open(self.content_path, 'rb') as f:
-            file = str(f.read())
-        header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
-        response = header + file
-        self.request.sendall(bytearray(response, 'utf-8'))
+
+        request = (str(self.data).replace("b'","")).split("\\r\\n")[0]
+        request_list = request.split(" ")
+        if request_list[0] == "GET":
+            if request_list[1] == '/':
+                with open(self.content_path, 'r') as f:
+                    file = str(f.read())
+                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
+                response = header + file
+                self.request.sendall(bytearray(response, 'utf-8'))
+            else:
+                response = 'HTTP/1.1 404 Page Not Found\r\ncontent-type: text/html\r\n\r\n'
+                self.request.sendall(bytearray(response, 'utf-8'))
+        else:
+            header = 'HTTP/1.1 405 Method Not Allowed\r\ncontent-type: text/html\r\n\r\n'
+            response = header + "NO GOOD!"
+            self.request.sendall(bytearray(response, 'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
