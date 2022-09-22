@@ -29,8 +29,11 @@ import socketserver
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
-    content_path = 'www/index.html'
-    content_css = 'www/base.css'
+    root_path = 'www/index.html'
+    root_css = 'www/base.css'
+    deep_path = 'www/deep/index.html'
+    deep_css = 'www/deep/deep.css'
+    response = None
 
     def handle(self):
         # The request should be read and need to determine the path of the request so i know which file to return
@@ -42,19 +45,33 @@ class MyWebServer(socketserver.BaseRequestHandler):
         request = (str(self.data).replace("b'","")).split("\\r\\n")[0]
         request_list = request.split(" ")
         if request_list[0] == "GET":
-            if request_list[1] == '/':
-                with open(self.content_path, 'r') as f:
+            if request_list[1] == '/' or request_list[1] == '/index.html':
+                with open(self.root_path, 'r') as f:
                     file = str(f.read())
                 header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
-                response = header + file
-                self.request.sendall(bytearray(response, 'utf-8'))
+                self.response = header + file
+            elif request_list[1] == '/base.css':
+                with open(self.root_css, 'r') as f:
+                    file = str(f.read())
+                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+                self.response = header + file
+            elif request_list[1] == '/deep/index.html':
+                with open(self.deep_path, 'r') as f:
+                    file = str(f.read())
+                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
+                self.response = header + file
+            elif request_list[1] == '/deep/deep.css':
+                with open(self.deep_css, 'r') as f:
+                    file = str(f.read())
+                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+                self.response = header + file
             else:
-                response = 'HTTP/1.1 404 Page Not Found\r\ncontent-type: text/html\r\n\r\n'
-                self.request.sendall(bytearray(response, 'utf-8'))
+                self.response = 'HTTP/1.1 404 Page Not Found\r\ncontent-type: text/html\r\n\r\n'
         else:
             header = 'HTTP/1.1 405 Method Not Allowed\r\ncontent-type: text/html\r\n\r\n'
-            response = header + "NO GOOD!"
-            self.request.sendall(bytearray(response, 'utf-8'))
+            self.response = header + "NO GOOD!"
+
+        self.request.sendall(bytearray(self.response, 'utf-8'))
 
 
 if __name__ == "__main__":
