@@ -1,7 +1,7 @@
 #  coding: utf-8 
 import socketserver
 
-# Copyright 2013 Abram Hindle, Eddie Antonio Santos
+# Copyright 2022 Kimberly Tran
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,28 +45,31 @@ class MyWebServer(socketserver.BaseRequestHandler):
         request = (str(self.data).replace("b'","")).split("\\r\\n")[0]
         request_list = request.split(" ")
         if request_list[0] == "GET":
-            if request_list[1] == '/' or request_list[1] == '/index.html':
-                with open(self.root_path, 'r') as f:
-                    file = str(f.read())
-                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
-                self.response = header + file
-            elif request_list[1] == '/base.css':
-                with open(self.root_css, 'r') as f:
-                    file = str(f.read())
-                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
-                self.response = header + file
-            elif request_list[1] == '/deep/index.html':
-                with open(self.deep_path, 'r') as f:
-                    file = str(f.read())
-                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
-                self.response = header + file
-            elif request_list[1] == '/deep/deep.css':
-                with open(self.deep_css, 'r') as f:
-                    file = str(f.read())
-                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
-                self.response = header + file
+            if request_list[1][-1] != '/':
+                self.response = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\nLocation: http://127.0.0.1:8080%s/\r\n\r\n' % (request_list[1])
             else:
-                self.response = 'HTTP/1.1 404 Page Not Found\r\ncontent-type: text/html\r\n\r\n'
+                if request_list[1] == '/' or request_list[1] == '/index.html':
+                    with open(self.root_path, 'r') as f:
+                        file = str(f.read())
+                    header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
+                    self.response = header + file
+                elif request_list[1] == '/base.css':
+                    with open(self.root_css, 'r') as f:
+                        file = str(f.read())
+                    header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+                    self.response = header + file
+                elif request_list[1] == '/deep/' or request_list[1] == '/deep/index.html':
+                    with open(self.deep_path, 'r') as f:
+                        file = str(f.read())
+                    header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
+                    self.response = header + file
+                elif request_list[1] == '/deep/deep.css':
+                    with open(self.deep_css, 'r') as f:
+                        file = str(f.read())
+                    header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+                    self.response = header + file
+                else:
+                    self.response = 'HTTP/1.1 404 Page Not Found\r\ncontent-type: text/html\r\n\r\n'
         else:
             header = 'HTTP/1.1 405 Method Not Allowed\r\ncontent-type: text/html\r\n\r\n'
             self.response = header + "NO GOOD!"
