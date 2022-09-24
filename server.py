@@ -39,16 +39,18 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # The request should be read and need to determine the path of the request so i know which file to return
         # once file is deduce (which will be in www *treat certain paths differently), need to return the data of that file (with the appropriate format)
         # don't worry about returning multiple files (just return html, and computer will also reutrn css automatically)
+
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
 
         request = (str(self.data).replace("b'","")).split("\\r\\n")[0]
         request_list = request.split(" ")
         if request_list[0] == "GET":
-            if request_list[1][-1] != '/':
-                self.response = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\nLocation: http://127.0.0.1:8080%s/\r\n\r\n' % (request_list[1])
+            if request_list[1] == '/deep':
+                header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' %request_list[1]
+                self.response = header
             else:
-                if request_list[1] == '/' or request_list[1] == '/index.html':
+                if request_list[1] == '/' or request_list[1] == '/hardcode/' or request_list[1] == "/hardcode/index.html" or request_list[1] == '/index.html':
                     with open(self.root_path, 'r') as f:
                         file = str(f.read())
                     header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
@@ -63,7 +65,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                         file = str(f.read())
                     header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
                     self.response = header + file
-                elif request_list[1] == '/deep/deep.css':
+                elif request_list[1] == '/deep/deep.css' or request_list[1] == '/deep/index.html/deep.css':
                     with open(self.deep_css, 'r') as f:
                         file = str(f.read())
                     header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
