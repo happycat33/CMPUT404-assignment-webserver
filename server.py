@@ -1,5 +1,7 @@
 #  coding: utf-8 
 import socketserver
+from os import path
+from os import walk
 
 # Copyright 2022 Kimberly Tran
 # 
@@ -29,10 +31,7 @@ import socketserver
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
-    root_path = 'www/index.html'
-    root_css = 'www/base.css'
-    deep_path = 'www/deep/index.html'
-    deep_css = 'www/deep/deep.css'
+    base_path = 'www'
     response = None
 
     def handle(self):
@@ -45,36 +44,48 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         request = (str(self.data).replace("b'","")).split("\\r\\n")[0]
         request_list = request.split(" ")
+        request_path = request_list[1]
+        full_path = self.base_path + request_path 
+
         if request_list[0] == "GET":
-            if request_list[1] == '/deep':
-                header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' %request_list[1]
+            if request_path[-1] != '/' and ".html" not in request_path:
+                    header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_list[
+                        1]
+                    self.response = header
+
+            elif request_path[-1] != '/' and ".css" not in request_path:
+                header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_list[1]
                 self.response = header
             else:
-                if request_list[1] == '/' or request_list[1] == '/hardcode/' or request_list[1] == "/hardcode/index.html" or request_list[1] == '/index.html':
-                    with open(self.root_path, 'r') as f:
-                        file = str(f.read())
-                    header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n' 
-                    self.response = header + file
-                elif request_list[1] == '/base.css':
-                    with open(self.root_css, 'r') as f:
-                        file = str(f.read())
-                    header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
-                    self.response = header + file
-                elif request_list[1] == '/deep/' or request_list[1] == '/deep/index.html':
-                    with open(self.deep_path, 'r') as f:
-                        file = str(f.read())
+                if(full_path[-1] == '/' and request_path != '/'):
+                    full_path = full_path[0:-1]
+
+                if path.isdir(full_path):
                     header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
-                    self.response = header + file
-                elif request_list[1] == '/deep/deep.css' or request_list[1] == '/deep/index.html/deep.css':
-                    with open(self.deep_css, 'r') as f:
+                    
+                    with open(full_path + '/index.html', 'r') as f:
                         file = str(f.read())
-                    header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+
                     self.response = header + file
+
                 else:
-                    self.response = 'HTTP/1.1 404 Page Not Found\r\ncontent-type: text/html\r\n\r\n'
+                    if (full_path[-1] == '/'):
+                        full_path = full_path[0:-1]
+
+                    if path.exists(full_path):
+                        if ".html" in request_path:
+                            header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
+                        else:
+                            header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+                        
+                        with open(full_path, 'r') as f:
+                            file = str(f.read())
+
+                        self.response = header + file 
+                    else:
+                        self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
         else:
-            header = 'HTTP/1.1 405 Method Not Allowed\r\ncontent-type: text/html\r\n\r\n'
-            self.response = header + "NO GOOD!"
+            self.response = 'HTTP/1.1 405 Method Not Allowed\r\ncontent-type: text/html\r\n\r\n'
 
         self.request.sendall(bytearray(self.response, 'utf-8'))
 
