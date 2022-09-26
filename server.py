@@ -1,7 +1,7 @@
 #  coding: utf-8 
 import socketserver
+import os
 from os import path
-from os import walk
 
 # Copyright 2022 Kimberly Tran
 # 
@@ -48,33 +48,29 @@ class MyWebServer(socketserver.BaseRequestHandler):
         full_path = self.base_path + request_path 
 
         if request_list[0] == "GET":
-            if request_path[-1] != '/' and ".html" not in request_path:
-                    header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_list[
-                        1]
-                    self.response = header
-
-            elif request_path[-1] != '/' and ".css" not in request_path:
-                header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_list[1]
+            if path.isdir(full_path) and full_path[-1] != '/':
+                header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_path
                 self.response = header
-            else:
-                if(full_path[-1] == '/' and request_path != '/'):
-                    full_path = full_path[0:-1]
 
+            else:
                 if path.isdir(full_path):
+                    html_file = None
                     header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
-                    
-                    with open(full_path + '/index.html', 'r') as f:
+
+                    for file in os.listdir(full_path):
+                        if file.endswith('.html'):
+                            html_file = file
+
+                    with open(full_path + str(html_file), 'r') as f:
                         file = str(f.read())
 
                     self.response = header + file
 
                 else:
-                    if (full_path[-1] == '/'):
-                        full_path = full_path[0:-1]
-
                     if path.exists(full_path):
-                        if ".html" in request_path:
+                        if ".html" in full_path:
                             header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
+                            
                         else:
                             header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
                         
