@@ -44,11 +44,12 @@ class MyWebServer(socketserver.BaseRequestHandler):
         request = (str(self.data).replace("b'","")).split("\\r\\n")[0]
         request_list = request.split(" ")
         request_path = request_list[1]
-        full_path = self.base_path + request_path 
-
+        real_path = os.path.realpath(request_path)
+        full_path = self.base_path + real_path
+        print(full_path)
         if request_list[0] == "GET":
             if os.path.isdir(full_path) and full_path[-1] != '/':
-                header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_path
+                header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % real_path
                 self.response = header
 
             else:
@@ -66,15 +67,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     self.response = header + file
 
                 else:
+                    file_name = (full_path.split('/'))[-1]
                     if os.path.exists(full_path):
-                        file_name = (full_path.split("/"))[-1]
-
                         if ".html" in file_name:
                             header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
                             
                         else:
                             header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
-                        
                         with open(full_path, 'r') as f:
                             file = str(f.read())
 
