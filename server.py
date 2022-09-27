@@ -1,7 +1,6 @@
 #  coding: utf-8 
 import socketserver
 import os
-from os import path
 
 # Copyright 2022 Kimberly Tran
 # 
@@ -48,12 +47,12 @@ class MyWebServer(socketserver.BaseRequestHandler):
         full_path = self.base_path + request_path 
 
         if request_list[0] == "GET":
-            if path.isdir(full_path) and full_path[-1] != '/':
+            if os.path.isdir(full_path) and full_path[-1] != '/':
                 header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_path
                 self.response = header
 
             else:
-                if path.isdir(full_path):
+                if os.path.isdir(full_path):
                     html_file = None
                     header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
 
@@ -67,8 +66,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     self.response = header + file
 
                 else:
-                    if path.exists(full_path):
-                        if ".html" in full_path:
+                    if os.path.exists(full_path):
+                        file_name = (full_path.split("/"))[-1]
+
+                        if ".html" in file_name:
                             header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
                             
                         else:
@@ -78,6 +79,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                             file = str(f.read())
 
                         self.response = header + file 
+
                     else:
                         self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
         else:
