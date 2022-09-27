@@ -30,7 +30,7 @@ import os
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
-    base_path = 'www'
+    base_path = 'www/'
     response = None
 
     def handle(self):
@@ -52,7 +52,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
             else:
                 if os.path.isdir(full_path):
-                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                     html_file = None
                     header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
 
@@ -66,18 +65,21 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     self.response = header + file
 
                 else:
-                    file_name = (full_path.split('/'))[-1]
-                    if os.path.isfile(full_path):
-                        if ".html" in file_name:
-                            header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
-                            
+                    if os.path.commonprefix((os.path.realpath(full_path), self.base_path)) != self.base_path:
+
+                        file_name = (full_path.split('/'))[-1]
+                        if os.path.exists(full_path):
+                            if ".html" in file_name:
+                                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
+                                
+                            else:
+                                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+                            with open(full_path, 'r') as f:
+                                file = str(f.read())
+
+                            self.response = header + file 
                         else:
-                            header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
-                        with open(full_path, 'r') as f:
-                            file = str(f.read())
-
-                        self.response = header + file 
-
+                            self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
                     else:
                         self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
         else:
