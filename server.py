@@ -45,6 +45,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         request_list = request.split(" ")
         request_path = request_list[1]
         full_path = self.base_path + request_path
+
         if request_list[0] == "GET":
             if os.path.isdir(full_path) and full_path[-1] != '/':
                 header = 'HTTP/1.1 301 Moved permanently\r\ncontent-type: text/html\r\nlocation: http://127.0.0.1:8080%s/\r\n' % request_path
@@ -65,23 +66,20 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     self.response = header + file
 
                 else:
-                    if os.path.commonprefix((os.path.realpath(full_path), self.base_path)) == self.base_path:
+                    full_path = self.base_path + os.path.abspath(request_path)
+                    if os.path.exists(full_path):
                         file_name = full_path.split('/')[-1]
-                        if os.path.exists(full_path):
-                            if ".html" in file_name:
-                                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
-                                
-                            else:
-                                header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
-
-                            with open(full_path, 'r') as f:
-                                file = str(f.read())
-                                print(file)
-
-                            self.response = header + file 
+                        if ".html" in file_name:
+                            header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
+                            
                         else:
-                            print("NOW FOUNF!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                            self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
+                            header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+
+                        with open(full_path, 'r') as f:
+                            file = str(f.read())
+
+                        self.response = header + file 
+
                     else:
                         self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
         else:
