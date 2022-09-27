@@ -30,7 +30,7 @@ import os
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
-    base_path = 'www/'
+    base_path = 'www'
     response = None
 
     def handle(self):
@@ -65,20 +65,22 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     self.response = header + file
 
                 else:
-                    if os.path.commonprefix((os.path.realpath(full_path), self.base_path)) != self.base_path:
-
-                        file_name = (full_path.split('/'))[-1]
+                    if os.path.commonprefix((os.path.realpath(full_path), self.base_path)) == self.base_path:
+                        file_name = full_path.split('/')[-1]
                         if os.path.exists(full_path):
                             if ".html" in file_name:
                                 header = 'HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n'
                                 
                             else:
                                 header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+
                             with open(full_path, 'r') as f:
                                 file = str(f.read())
+                                print(file)
 
                             self.response = header + file 
                         else:
+                            print("NOW FOUNF!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                             self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
                     else:
                         self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\ncontent-type: text/html\r\n\r\n'
