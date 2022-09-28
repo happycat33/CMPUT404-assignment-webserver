@@ -46,7 +46,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         request_list = request.split(" ")
         request_path = request_list[1]
 
-        if("../" in request_path):
+        if("/.." in request_path):
             request_path = request_path.strip("/..")
 
         full_path = self.base_path + request_path
