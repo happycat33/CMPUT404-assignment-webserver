@@ -2,6 +2,7 @@
 import socketserver
 import os
 
+# Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # Copyright 2022 Kimberly Tran
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,14 +46,15 @@ class MyWebServer(socketserver.BaseRequestHandler):
         request = (str(self.data).replace("b'","")).split("\\r\\n")[0]
         request_list = request.split(" ")
         request_path = request_list[1]
-
+        
+        # While code not given, rmo1 suggested something similar to solve directory traversal attack
+        
         if("/.." in request_path):
             request_path = request_path.strip("/..")
-
         full_path = self.base_path + request_path
 
         if request_list[0] == "GET":
-            if os.path.isdir(full_path) and request_path[-1] != '/':
+            if os.path.isdir(full_path) and full_path[-1] != '/':
                 # Here we check if the path given is a directory, if so we check if the request path ends with "/", if not, we redirect the request to
                 # one with "/" at the end.
 
