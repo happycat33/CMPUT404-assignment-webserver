@@ -51,7 +51,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         if("/.." in request_path):
             request_path = request_path.strip("/..")
-            
+
         full_path = self.base_path + request_path
 
         if request_list[0] == "GET":
@@ -87,7 +87,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 else:
                     # If the path given is not a directory, we assume we are given a file path. We then check if the file path exists in ww/. If so,
                     # then we check if we're given a html or css file and return the appropriate mime type and header". Then similar to the previous if
-                    # statement, we open the file path, read it and attach the string version to the header and return the response.
+                    # statement, we open the file path, read it and attach the string version to the header and return the response. We also add a try catch
+                    # when opening files (in case the file is found but is empty)
 
                     if os.path.exists(full_path):
                         file_name = full_path.split('/')[-1]
@@ -97,12 +98,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
                             
                         else:
                             header = 'HTTP/1.1 200 OK\r\ncontent-type: text/css\r\n\r\n'
+                        
+                        try:
 
-                        with open(full_path, 'r') as f:
-                            file = str(f.read())
+                            with open(full_path, 'r') as f:
+                                file = str(f.read())
 
-                        self.response = header + file 
+                            self.response = header + file 
 
+                        except:
+                            
+                            self.response = 'HTTP/1.1 404 PAGE NOT FOUND\r\n\r\n'
                     else:
 
                         # if the path is not a directory and the file doesn't exists, we return a 404 response
