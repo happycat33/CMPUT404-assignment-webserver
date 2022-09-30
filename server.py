@@ -51,6 +51,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         if("/.." in request_path):
             request_path = request_path.strip("/..")
+            
         full_path = self.base_path + request_path
 
         if request_list[0] == "GET":

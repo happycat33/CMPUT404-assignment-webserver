@@ -19,8 +19,10 @@ server.py contains contributions from:
 * landberg (helped with failing test and clarification of that test, as well as helped explaining issue with my 301 redirect) 
 * natnail (helped me with dealing with disc cache error and gave suggestions for dealing with directory traversal attacks)
 * rmo1 (helped me fix issue with disc cache error, explained directory traversal attacks and gave me suggestions on how to deal with them)
+* truonggi (explained how the tests cover hardcoded cases and that my code should reflect that issue)
 
 server.py contains external code from:
+
 * https://stackoverflow.com/questions/33400682/check-if-a-directory-contains-a-file-with-a-given-extension (check if file ends with certain extension, in the case of the code, html)
 
 But the server.py example is derived from the python documentation
